@@ -1,21 +1,30 @@
-import express, { json } from 'express';
-import cors from 'cors';
-import { loadLayersModel, image } from '@tensorflow/tfjs';
-import { node } from '@tensorflow/tfjs-node';
-import multer from 'multer';
-import { readFileSync } from 'fs';
+const express = require('express');
+const dotenv = require('dotenv');
+const cors = require('cors');
+const multer = require('multer');
+const multerGoogleStorage = require('multer-cloud-storage');
+const tf = require('@tensorflow/tfjs');
+const tfnode = require('@tensorflow/tfjs-node');
+const fs = require('fs');
+const axios = require('axios');
+
+dotenv.config();
 
 const app = express();
-const upload = multer({ dest: 'uploads/' });
+const upload = multer({
+  storage: multerGoogleStorage.storageEngine({
+    acl: 'publicRead',
+    destination: 'model_images/',
+  }),
+});
 
-app.use(json());
 app.use(cors());
 
 let bodyClassifierModel;
 
 // Load all models
 async function loadModel() {
-  bodyClassifierModel = await loadLayersModel(
+  bodyClassifierModel = await tf.loadLayersModel(
     'file://./models/body-classifier.json'
   );
 }
@@ -25,10 +34,10 @@ loadModel();
 // Preprocess image for body classifier model
 async function preprocessImage(imageBuffer) {
   // Decode the image into a tensor
-  const imageTensor = node.decodeImage(imageBuffer, 3);
+  const imageTensor = tfnode.node.decodeImage(imageBuffer, 3);
 
   // Resize image to 200x200 size
-  const resizedImage = image.resizeBilinear(imageTensor, [200, 200]);
+  const resizedImage = tf.image.resizeBilinear(imageTensor, [200, 200]);
 
   // Expand image dimension to fit Tensor4D required
   const batchedImage = resizedImage.expandDims(0);
@@ -56,10 +65,21 @@ app.post('/model/body-classifier', upload.single('image'), async (req, res) => {
   }
 
   try {
-    const imageBuffer = readFileSync(req.file.path);
-    const prediction = await predictImage(bodyClassifierModel, imageBuffer);
-
-    return res.status(200).json({ prediction });
+    axios
+      .get(`https://storage.googleapis.com/roadtofit-bucket/${req.file.path}`, {
+        responseType: 'arraybuffer',
+      })
+      .then(async (response) => {
+        const prediction = await predictImage(
+          bodyClassifierModel,
+          response.data
+        );
+        return res.status(200).json({ prediction });
+      })
+      .catch((error) => {
+        console.error(error);
+        throw new Error();
+      });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: 'Internal server error' });
