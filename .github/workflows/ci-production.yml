@@ -1,0 +1,40 @@
+name: Deploy to Google Cloud Run
+
+on:
+  push:
+    branches:
+      - production
+    path:
+      - 'service/**'
+      - '.github/workflows/**'
+
+jobs:
+  setup-build-publish-deploy:
+    name: Setup, Build, Publish, and Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v0.2.0
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          export_default_credentials: true
+
+      - name: Authenticate Docker
+        run: |
+          gcloud auth configure-docker ${{ secrets.GCP_REPO_REGION }}-docker.pkg.dev --quiet
+
+      - name: Build image
+        working-directory: ./
+        run: docker build . --file Dockerfile --tag ${{ secrets.GCP_REPO_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/roadtofit-repo/roadtofit-ml
+
+      - name: Push image
+        run: docker push ${{ secrets.GCP_REPO_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/roadtofit-repo/roadtofit-ml
+
+      - name: Deploy image to Google Cloud Run
+        run: |
+          gcloud run deploy roadtofit-ml --image ${{ secrets.GCP_REPO_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/roadtofit-repo/roadtofit-ml:latest --platform managed --region ${{ secrets.GCP_CLOUD_RUN_REGION }} --allow-unauthenticated --port 4000 --min-instances 1 --max-instances 4
