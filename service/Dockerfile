@@ -1,26 +1,18 @@
 # Use the official lightweight Node.js 16 image.
 # https://hub.docker.com/_/node
-FROM node:18-slim
+FROM python:3.10
 
 # Create and change to the app directory.
-WORKDIR /usr/src/app
+WORKDIR /code
 
 # Copy application dependency manifests to the container image.
-# A wildcard is used to ensure both package.json AND yarn.lock are copied.
-# Copying this separately prevents re-running yarn install on every code change.
-COPY package.json yarn.lock ./
+COPY ./requirements.txt /code/requirements.txt
 
 # Install dependencies.
-RUN yarn install
+RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
 # Copy local code to the container image.
-COPY . .
-
-# Set the environment to production
-ENV NODE_ENV production
-
-# Expose port
-EXPOSE 4000
+COPY . /code/
 
 # Run the web service on container startup.
-CMD [ "node", "index.js" ]
+CMD [ "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "4000" ]
