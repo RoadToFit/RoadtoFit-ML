@@ -23,4 +23,4 @@ COPY --from=builder /usr/local/lib/python3.10/site-packages/ /usr/local/lib/pyth
 COPY . /code/
 
 # Run the web service on container startup.
-CMD [ "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "4000" ]
+CMD [ "gunicorn", "-b", "0.0.0.0:4000", "main:app" ]
