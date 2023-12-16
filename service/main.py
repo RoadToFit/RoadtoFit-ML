@@ -24,6 +24,6 @@ async def body_classifier(image: UploadFile):
 @app.post('/model/calories-recommendation')
 async def calories_recommendation(request: Request):
     input = await request.json()
-    result = recommendCalories(input["input"])
+    result = recommendCalories(input["moderat"], input["berat"], input["kal_jam"])
     return result
     

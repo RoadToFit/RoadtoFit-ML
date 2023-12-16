@@ -23,19 +23,11 @@ def predictBodyClass(imageBuffer: bytes) -> np.ndarray:
     value = model.predict(image)
     return value
 
-def preprocessCalories(input: str):
-    encoding = pd.get_dummies(pd.Series(input))
-
-    # Lengkapi data dengan kolom dummy yang mungkin hilang
-    missing_cols = set(X.columns) - set(input_data.columns)
-    for col in missing_cols:
-        input_data[col] = 0
-
-    # Sesuaikan urutan kolom agar sesuai dengan model yang telah dilatih
-    input_data = input_data[X.columns]
-
-def recommendCalories(input: str):
-    
+def recommendCalories(moderat: str, berat: str, kal_jam: str):
+    input = { "berat": berat, "kal/jam": kal_jam, "moderat": moderat }
+    series = pd.Series(data=input, index=["berat", "kal/jam", "moderat"])
+    print(series)
+    encoding = pd.get_dummies(series)
     model = joblib.load('./model/model3.joblib')
     
     value = model.predict(encoding)
