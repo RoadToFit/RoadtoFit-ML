@@ -44,7 +44,4 @@ jobs:
             --allow-unauthenticated \
             --port 4000 \
             --min-instances 1 \
-            --max-instances 4 \
-            --service-account ${{ secrets.GCP_CLOUD_RUN_SA }} \
-            --update-secrets=/etc/secrets/key.json=${{ secrets.GCS_SECRET_KEY_NAME }}:latest \
-            --set-env-vars GCS_BUCKET=${{ secrets.GCS_BUCKET }},GCLOUD_PROJECT=${{ secrets.GCP_PROJECT_ID }},GCS_KEYFILE=/etc/secrets/key.json
+            --max-instances 4
