@@ -40,6 +40,7 @@ jobs:
           gcloud run deploy roadtofit-ml \
             --image ${{ secrets.GCP_REPO_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/roadtofit-repo/roadtofit-ml:latest \
             --platform managed \
+            --memory=1024Mi \
             --region ${{ secrets.GCP_CLOUD_RUN_REGION }} \
             --allow-unauthenticated \
             --port 4000 \
