@@ -24,7 +24,7 @@ def predictBodyClass(imageBuffer: bytes) -> np.ndarray:
     return value
 
 def preprocessCaloriesInput(df: pd.DataFrame, input: str):
-    calories = df.drop(['Aktivitas', 'kategori'], axis=1)
+    calories = df.drop(["Aktivitas", "kategori", "id"], axis=1)
     encoding = pd.get_dummies(pd.Series(input))
     missing_cols = set(calories.columns) - set(encoding.columns)
     for col in missing_cols:
@@ -37,7 +37,7 @@ def preprocessCaloriesInput(df: pd.DataFrame, input: str):
 def recommendCalories(input: str):
     # Read excel file, encode the content, and concat to the main dataframe
     df = pd.read_excel("./model/dataset_workout.xlsx")
-    df_encoded = pd.get_dummies(df['kategori'])
+    df_encoded = pd.get_dummies(df["kategori"])
     df = pd.concat([df, df_encoded], axis=1)
 
     # Get preprocessed encoding from the input
@@ -50,8 +50,8 @@ def recommendCalories(input: str):
     prediction = model.predict(encoding)[0]
 
     # Post process the output (fetch all the activites with predicted category)
-    activities = df[df["kategori"] == prediction][["Aktivitas", "kal/jam"]]
+    activities = df[df["kategori"] == prediction][["Aktivitas", "kal/jam", "id"]]
     activities_df = activities.reset_index(drop=True)
-    result = activities_df['Aktivitas'].tolist()
+    result = activities_df['id'].tolist()
 
     return result
