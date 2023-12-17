@@ -22,5 +22,7 @@ COPY --from=builder /usr/local/lib/python3.10/site-packages/ /usr/local/lib/pyth
 # Copy local code to the container image.
 COPY . /code/
 
+ENV PYTHONUNBUFFERED true
+
 # Run the web service on container startup.
-CMD [ "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "4000" ]
+CMD [ "uvicorn", "code.main:app", "--host", "0.0.0.0", "--port", "4000" ]
