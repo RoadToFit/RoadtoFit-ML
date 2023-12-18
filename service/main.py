@@ -1,9 +1,23 @@
-from fastapi import FastAPI, Request, UploadFile
-from model import BodyClass, predictBodyClass, recommendCalories
+from fastapi import FastAPI, UploadFile
+from model import BodyClass, predictBodyClass, recommendActivities
+from pydantic import BaseModel
 
 app = FastAPI()
 
-@app.post('/model/body-classifier')
+class BodyClassifierResponse(BaseModel):
+    success: bool
+    message: str
+    result: str
+
+class ActivityRecommendationRequest(BaseModel):
+    input: str
+
+class ActivityRecommendationResponse(BaseModel):
+    success: bool
+    message: str
+    result: list[int]
+
+@app.post('/model/body-classifier', response_model=BodyClassifierResponse)
 async def body_classifier(image: UploadFile):
     label = ""
     buffer = image.file.read()
@@ -19,11 +33,10 @@ async def body_classifier(image: UploadFile):
             else:
                 label = BodyClass.Mesomorph
 
-    return { "result": label }
+    return { "success": True, "message": "OK", "result": label }
 
-@app.post('/model/calories-recommendation')
-async def calories_recommendation(request: Request):
-    input = await request.json()
-    result = recommendCalories(input["input"])
-    return result
+@app.post('/model/activities-recommendation', response_model=ActivityRecommendationResponse)
+async def activities_recommendation(input: ActivityRecommendationRequest):
+    result = recommendActivities(input.input)
+    return { "success": True, "message": "OK", "result": result }
     

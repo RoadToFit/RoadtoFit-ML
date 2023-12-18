@@ -5,3 +5,4 @@ joblib
 fastapi
 python-multipart
 openpyxl
+pydantic
