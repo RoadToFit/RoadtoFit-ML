@@ -6,9 +6,9 @@ import pandas as pd
 import numpy as np
 
 class BodyClass(Enum):
-    Ectomorph = "Ectomorph"
-    Endomorph = "Endomorph"
-    Mesomorph = "Mesomorph"
+    Ectomorph = "ECTOMORPH"
+    Endomorph = "ENDOMORPH"
+    Mesomorph = "MESOMORPH"
 
 def preprocessImage(imageBuffer: bytes):
     imageTensor = tf.io.decode_image(imageBuffer, 3)
@@ -23,25 +23,25 @@ def predictBodyClass(imageBuffer: bytes) -> np.ndarray:
     value = model.predict(image)
     return value
 
-def preprocessCaloriesInput(df: pd.DataFrame, input: str):
-    calories = df.drop(["Aktivitas", "kategori", "id"], axis=1)
+def preprocessActivitiesInput(df: pd.DataFrame, input: str):
+    activities = df.drop(["Aktivitas", "kategori", "id"], axis=1)
     encoding = pd.get_dummies(pd.Series(input))
-    missing_cols = set(calories.columns) - set(encoding.columns)
+    missing_cols = set(activities.columns) - set(encoding.columns)
     for col in missing_cols:
         encoding[col] = 0
-    
-    encoding = encoding[calories.columns]
+
+    encoding = encoding[activities.columns]
 
     return encoding
 
-def recommendCalories(input: str):
+def recommendActivities(input: str):
     # Read excel file, encode the content, and concat to the main dataframe
     df = pd.read_excel("./model/dataset_workout.xlsx")
     df_encoded = pd.get_dummies(df["kategori"])
     df = pd.concat([df, df_encoded], axis=1)
 
     # Get preprocessed encoding from the input
-    encoding = preprocessCaloriesInput(df, input)
+    encoding = preprocessActivitiesInput(df, input)
 
     # Load the model
     model = joblib.load("./model/model3.joblib")
