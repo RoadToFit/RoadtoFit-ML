@@ -26,7 +26,6 @@ class FoodRecommendationRequest(BaseModel):
     activity: str
     plan: str
     num_meals: int
-    foodCategory: str
     bodyType: str
 
 class FoodRecommendationResponse(BaseModel):
@@ -63,12 +62,39 @@ async def food_recommendation(input: FoodRecommendationRequest):
     daily_calories = total_daily_calories(bmr, input.activity)
     weight_loss_plan = calculate_weight_loss_plan_calories(daily_calories, input.plan)
     calories_distribution = calculate_meal_calories(weight_loss_plan, input.num_meals)
-    meal_calories = calories_distribution[input.foodCategory]
-    macronutrient = calculate_macronutrient(meal_calories, input.bodyType)
 
-    preprocessedInput = [meal_calories, macronutrient['carbohydrates'], macronutrient['protein'], macronutrient['fat']]
-    knn_model, scaler = load_knn_model(input.foodCategory)
-    result = recommendFood(preprocessedInput, knn_model, scaler, input.foodCategory)
-    jsonify_result = json.loads(result.to_json())
-    parsed_result = postprocessFoodRecommendation(jsonify_result)
-    return { "success": True, "message": "OK", "result": parsed_result }
+    meal_category = ["breakfast", "lunch", "dinner", "morning_snack", "afternoon_snack"]
+    requested_categories = []
+
+    if (input.num_meals == 3):
+        requested_categories = meal_category[0:3]
+    elif (input.num_meals == 4):
+        requested_categories = meal_category[0:4]
+    elif (input.num_meals == 5):
+        requested_categories = meal_category[0:5]
+
+    final_result = []
+
+    for category in requested_categories:
+        # Get required calories for a meal category
+        meal_calories = calories_distribution[category]
+
+        # Calculate the macronutrient based on the required calories and body type
+        macronutrient = calculate_macronutrient(meal_calories, input.bodyType)
+
+        # Put the input together
+        preprocessedInput = [meal_calories, macronutrient['protein'], macronutrient['fat'], macronutrient['carbohydrates']]
+
+        # Load model and scaler
+        knn_model, scaler = load_knn_model(category)
+
+        # Get recommendation prediction
+        result = recommendFood(preprocessedInput, knn_model, scaler, category)
+
+        # Process output
+        jsonify_result = json.loads(result.to_json())
+        parsed_result = postprocessFoodRecommendation(jsonify_result)
+        category_dict = {f"{category}": parsed_result}
+        final_result.append(category_dict)
+
+    return { "success": True, "message": "OK", "result": final_result }

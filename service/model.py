@@ -146,6 +146,9 @@ def calculate_macronutrient(calories: float, bodyType: str) -> dict[str, float]:
 
 # Fungsi untuk membaca model dan scaler
 def load_knn_model(category):
+    if (category == 'morning_snack' or category == 'afternoon_snack'):
+        category = 'snack'
+    
     model_filename = f'./model/{category}_knn_model.joblib'
     scaler_filename = f'./model/{category}_scaler.joblib'
 
@@ -156,6 +159,9 @@ def load_knn_model(category):
 
 # Fungsi untuk melakukan prediksi
 def recommendFood(user_input, knn_model, scaler, category):
+    if (category == 'morning_snack' or category == 'afternoon_snack'):
+        category = 'snack'
+
     df = pd.read_csv('./model/foods_menu.csv')
     # Standarisasi input pengguna
     user_input_scaled = scaler.transform(np.array([user_input]))
@@ -168,17 +174,9 @@ def recommendFood(user_input, knn_model, scaler, category):
     return recommendations
 
 def postprocessFoodRecommendation(data):
-    parsed_data_array = []
-    for key, value in data["menu"].items():
-        parsed_data_array.append({
-            "id": key,
-            "menu": value,
-            "calories": data["calories"][key],
-            "protein": data["protein"][key],
-            "fat": data["fat"][key],
-            "carbo": data["carbo"][key],
-            "image": data["image"][key],
-            "category": data["category"][key]
-        })
+    result_ids = []
 
-    return parsed_data_array
+    for key, _ in data["category"].items():
+        result_ids.append(int(key))
+
+    return result_ids
