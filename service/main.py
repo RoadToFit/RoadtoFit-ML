@@ -94,7 +94,6 @@ async def food_recommendation(input: FoodRecommendationRequest):
         # Process output
         jsonify_result = json.loads(result.to_json())
         parsed_result = postprocessFoodRecommendation(jsonify_result)
-        category_dict = {f"{category}": parsed_result}
-        final_result.append(category_dict)
+        final_result.extend(parsed_result)
 
-    return { "success": True, "message": "OK", "result": final_result }
+    return { "success": True, "message": "OK", "result": list(dict.fromkeys(final_result)) }
