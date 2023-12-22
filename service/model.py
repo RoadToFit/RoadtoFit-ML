@@ -4,7 +4,7 @@ import tensorflow as tf
 from tensorflow.keras.optimizers import RMSprop
 import pandas as pd
 import numpy as np
-from random import random
+import random
 
 class BodyClass(Enum):
     Ectomorph = "ECTOMORPH"
@@ -79,11 +79,11 @@ def calculate_weight_loss_plan_calories(normal_calories: float, plan: str) -> fl
     if plan == 'maintain weight':
         return normal_calories
     elif plan == 'mild weight loss':
-        return normal_calories * (0.9 + random() * 0.05)
+        return normal_calories * (0.9 + random.random() * 0.05)
     elif plan == 'weight loss':
-        return normal_calories * (0.8 + random() * 0.1)
+        return normal_calories * (0.8 + random.random() * 0.1)
     elif plan == 'extreme weight loss':
-        return normal_calories * (0.7 + random() * 0.1)
+        return normal_calories * (0.7 + random.random() * 0.1)
     
 def calculate_meal_calories(total_calories: float, num_meals: int):
     if num_meals == 3:
@@ -130,11 +130,32 @@ def calculate_macronutrient(calories: float, bodyType: str) -> dict[str, float]:
     macronutrients = {'carbohydrates': 0.35, 'protein': 0.35, 'fat': 0.3}
 
     if bodyType == 'endomorph':
-        macronutrients = {'carbohydrates': 0.25, 'protein': 0.4, 'fat': 0.35}
-    elif bodyType == 'meshomorp':
-        macronutrients = {'carbohydrates': 0.35, 'protein': 0.35, 'fat': 0.3}
+        randomized_carb = round(random.uniform(0.2, 0.3), 2)
+        randomized_protein = round(random.uniform(0.35, 0.45), 2)
+        randomized_fat = round(1 - randomized_carb - randomized_protein, 2)
+
+        if (randomized_fat > 0.3):
+            randomized_fat = 0.3
+
+        macronutrients = {'carbohydrates': randomized_carb, 'protein': randomized_protein, 'fat': randomized_fat}
+    elif bodyType == 'mesomorph':
+        randomized_carb = round(random.uniform(0.3, 0.4), 2)
+        randomized_protein = round(random.uniform(0.3, 0.4), 2)
+        randomized_fat = round(1 - randomized_carb - randomized_protein, 2)
+
+        if (randomized_fat > 0.35):
+            randomized_fat = 0.35
+
+        macronutrients = {'carbohydrates': randomized_carb, 'protein': randomized_protein, 'fat': randomized_fat}
     elif bodyType == 'ectomorph':
-        macronutrients = {'carbohydrates': 0.4, 'protein': 0.3, 'fat': 0.3}
+        randomized_carb = round(random.uniform(0.35, 0.45), 2)
+        randomized_protein = round(random.uniform(0.25, 0.35), 2)
+        randomized_fat = round(1 - randomized_carb - randomized_protein, 2)
+
+        if (randomized_fat > 0.3):
+            randomized_fat = 0.3
+
+        macronutrients = {'carbohydrates': randomized_carb, 'protein': randomized_protein, 'fat': randomized_fat}
 
     # Calculate macronutrients based on percentages
     macronutrient_intake = {
